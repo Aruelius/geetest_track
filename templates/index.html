@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="./static/favicon.png">
+    <title>极验滑动轨迹获取平台</title>
+    <style>
+        body {
+            margin: 48px 0;
+            text-align: center;
+        }
+        .btn {
+            padding: 0 10px;
+            border: 1px solid gray;
+            height: 30px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #embed-captcha {
+            width: 300px;
+            margin: 0 auto;
+        }
+        .show {
+            display: block;
+            height: 30px;
+        }
+        .hide {
+            display: none;
+        }
+        .geetest_form p {
+            margin: 0 auto;
+            width: 510px;
+            text-align: left;
+        }
+        footer {
+            margin-bottom: 18px;
+        }
+        footer span {
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+<script src="./static/jquery.min.js"></script>
+<script src="./static/gt.js"></script>
+<div class="popup">
+    <div id="embed-captcha"></div>
+    <p id="wait" class="show">正在加载验证码......</p>
+    <br>
+    <input class="btn" id="download_track" type="submit" value="下载轨迹" onclick="downloadTracks()">
+</div>
+
+<script>
+    function getClass(class_name) {
+        return document.getElementsByClassName(class_name)[0]
+    }
+
+    function downloadTracks() {
+        var a = document.createElement('a');
+        a.download = "track_list.txt";
+        a.style.display = 'none';
+        var blob = new Blob(["["+track_list+"]"]);
+        a.href = URL.createObjectURL(blob);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    var track_list = [];
+
+    var handlerEmbed = function (captchaObj) {
+        captchaObj.appendTo("#embed-captcha");
+        captchaObj.onReady(function () {
+            var script = document.createElement('script');
+            script.src = "./static/slide.7.7.1.js";
+            document.getElementsByTagName('head')[0].appendChild(script);
+            $("#wait")[0].className = "hide";
+        });
+        captchaObj.onSuccess(function () {
+            var result = captchaObj.getValidate();
+            console.log(result);
+            loadG();
+            document.getElementById("download_track").value = "下载轨迹 " + track_list.length;
+            document.getElementById("geetest_challenge").innerHTML = "geetest_challenge："+result.geetest_challenge;
+            document.getElementById("geetest_validate").innerHTML = "geetest_validate："+result.geetest_validate;
+            document.getElementById("geetest_seccode").innerHTML = "geetest_seccode："+result.geetest_seccode;
+        });
+        captchaObj.onError(function (error) {
+            console.log(error);
+            loadG();
+        });
+    };
+    function loadG(){
+        var success_class = getClass("geetest_holder geetest_wind geetest_radar_success");
+        if(success_class){
+            $("#wait")[0].className = "show";
+            success_class.remove();
+        };
+        
+        $.ajax({
+            url: "/bilibili/combine?t=" + (new Date()).getTime(),
+            type: "get",
+            dataType: "json",
+            success: function (data) {
+                initGeetest({
+                    gt: data.gt,
+                    challenge: data.challenge,
+                    product: "float",
+                    offline: !data.success,
+                    new_captcha: data.new_captcha,
+                    width: "300px",
+                }, handlerEmbed);
+            }
+        });
+    }
+    loadG();
+</script>
+<br><br>
+</body>
+<div id="content" style="margin-top: 20%;"></div>
+<div class="geetest_form">
+    <p id="geetest_challenge"></p>
+    <p id="geetest_validate"></p>
+    <p id="geetest_seccode"></p>
+</div>
+<br>
+<p>生成的 validate 不会立即失效，而是会等待一段时间才会失效</p>
+<p>当前页面生成的 validate 是可以用于 BiliBili 网页登录使用的</p>
+<p>建议重复使用 validate</p>
+<br>
+<footer>
+    <span>© 2020 Powered by Aruelius.L</span>
+</footer>
+</html>
+
