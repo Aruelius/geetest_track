@@ -11,9 +11,9 @@ app.config.update(
 @app.route("/bilibili/combine", methods=["GET"])
 def get_pc_captcha():
     r = requests.get(
-        url="https://www.geetest.com/demo/gt/register-slide"
+        url="https://account.ch.com/default/initValidate?t=643"
     ).json()
-    return json.dumps(r)
+    return r
 
 @app.route("/")
 def login():
