@@ -11,16 +11,9 @@ app.config.update(
 @app.route("/bilibili/combine", methods=["GET"])
 def get_pc_captcha():
     r = requests.get(
-        url="https://passport.bilibili.com/web/captcha/combine?plat=6"
+        url="https://www.geetest.com/demo/gt/register-slide"
     ).json()
-    result = r.get("data", "").get("result", "")
-    response = {
-        "success": 1 if result else 0,
-        "gt": result.get("gt", ""),
-        "challenge": result.get("challenge", ""),
-        "new_captcha": True
-    }
-    return json.dumps(response)
+    return json.dumps(r)
 
 @app.route("/")
 def login():
